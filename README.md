@@ -78,11 +78,3 @@ Additional implementation and user documentation is available in the Markdown gu
 ## License
 
 This project does not currently declare a license. Add a license file before distributing or reusing the code outside the project.
-#JSS_NGO_Website
-
-_**Created By [Deep Solanki , Jenil Sarvani , Deep Parmar]
-
-_**Take a view at => https://jssngo.netlify.app/
-
-
-
