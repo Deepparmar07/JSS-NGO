@@ -97,33 +97,14 @@
     </section>
 
     <section class="container online-donation" aria-labelledby="online-donation-heading">
-      <h2 id="online-donation-heading">Donate securely online</h2>
-      <p>Select an amount and enter your details to continue to Razorpay Checkout.</p>
-      <div class="form-group" aria-label="Select donation amount">
-        <button type="button" class="amount-btn btn btn-default" data-amount="500">₹500</button>
-        <button type="button" class="amount-btn btn btn-default" data-amount="1000">₹1,000</button>
-        <button type="button" class="amount-btn btn btn-default" data-amount="2500">₹2,500</button>
-        <label for="custom-amount">Or enter an amount (minimum ₹100)</label>
-        <input class="form-control" id="custom-amount" type="number" min="100" step="1" inputmode="numeric">
-      </div>
-      <div class="form-group">
-        <label for="donor-name">Name</label>
-        <input class="form-control" id="donor-name" type="text" maxlength="200" required>
-      </div>
-      <div class="form-group">
-        <label for="donor-email">Email</label>
-        <input class="form-control" id="donor-email" type="email" maxlength="254" required>
-      </div>
-      <div class="form-group">
-        <label for="donor-phone">Phone</label>
-        <input class="form-control" id="donor-phone" type="tel" maxlength="40" required>
-      </div>
-      <div class="form-group">
-        <label for="donor-pan">PAN (optional)</label>
-        <input class="form-control" id="donor-pan" type="text" maxlength="20">
-      </div>
-      <button id="donate-button" type="button" class="btn btn-primary">Continue to payment</button>
-      <p id="donation-status" role="status" aria-live="polite"></p>
+      <h2 id="online-donation-heading">Donate securely with Razorpay</h2>
+      <form>
+        <script
+          src="https://checkout.razorpay.com/v1/payment-button.js"
+          data-payment_button_id="pl_Q3W5xFLrl4UOW9"
+          async>
+        </script>
+      </form>
     </section>
     <br><br>   <br><br>
     <h4 class="quote">The measure of life is not its duration, but its donation.</h4>
@@ -166,115 +147,6 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
     integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
     crossorigin="anonymous"></script>
-
-  <script src="api-config.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const amountButtons = document.querySelectorAll('.amount-btn');
-      const customAmount = document.getElementById('custom-amount');
-      const status = document.getElementById('donation-status');
-      let selectedAmount = 500;
-
-      amountButtons[0].classList.add('selected');
-      amountButtons.forEach((button) => {
-        button.addEventListener('click', function() {
-          amountButtons.forEach((item) => item.classList.remove('selected'));
-          button.classList.add('selected');
-          selectedAmount = Number(button.dataset.amount);
-          customAmount.value = '';
-        });
-      });
-      customAmount.addEventListener('input', function() {
-        amountButtons.forEach((button) => button.classList.remove('selected'));
-        selectedAmount = Number(customAmount.value);
-      });
-
-      document.getElementById('donate-button').addEventListener('click', async function() {
-        const name = document.getElementById('donor-name').value.trim();
-        const email = document.getElementById('donor-email').value.trim();
-        const phone = document.getElementById('donor-phone').value.trim();
-        const pan = document.getElementById('donor-pan').value.trim();
-        const button = this;
-
-        if (!name || !email || !phone || !Number.isSafeInteger(selectedAmount) || selectedAmount < 100) {
-          status.textContent = 'Enter your name, a valid email and phone number, and an amount of at least ₹100.';
-          return;
-        }
-
-        button.disabled = true;
-        status.textContent = 'Connecting to secure checkout...';
-        try {
-          const configResponse = await fetch(window.jssApiUrl('/api/config'));
-          const config = await configResponse.json();
-          if (!configResponse.ok || !config.razorpayKeyId) {
-            throw new Error(config.error || 'Online payments are not configured yet.');
-          }
-
-          const orderResponse = await fetch(window.jssApiUrl('/api/create-order'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: selectedAmount })
-          });
-          const order = await orderResponse.json();
-          if (!orderResponse.ok) {
-            throw new Error(order.error || 'Unable to create payment order.');
-          }
-
-          const checkout = new Razorpay({
-            key: config.razorpayKeyId,
-            amount: order.amount,
-            currency: order.currency,
-            name: 'JSS NGO',
-            description: 'Donation to JSS',
-            image: 'images/JSS.png',
-            order_id: order.id,
-            prefill: { name, email, contact: phone },
-            theme: { color: '#009ffd' },
-            handler: async function(payment) {
-              status.textContent = 'Verifying your payment...';
-              try {
-                const verifyResponse = await fetch(window.jssApiUrl('/api/verify-payment'), {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    ...payment,
-                    name,
-                    email,
-                    phone,
-                    pan,
-                    amount: selectedAmount
-                  })
-                });
-                const result = await verifyResponse.json();
-                if (!verifyResponse.ok || !result.success) {
-                  throw new Error(result.error || 'Payment verification failed.');
-                }
-                status.textContent = result.emailSent
-                  ? 'Thank you! Your donation was received and a receipt was emailed to you.'
-                  : 'Thank you! Your donation was received. Email receipts are temporarily unavailable.';
-              } catch (error) {
-                console.error('Payment verification failed:', error);
-                status.textContent = `Payment completed, but verification needs assistance. Please contact us with your payment ID.`;
-              } finally {
-                button.disabled = false;
-              }
-            },
-            modal: {
-              ondismiss: function() {
-                status.textContent = 'Payment was cancelled.';
-                button.disabled = false;
-              }
-            }
-          });
-          checkout.open();
-        } catch (error) {
-          console.error('Unable to start donation checkout:', error);
-          status.textContent = error.message;
-          button.disabled = false;
-        }
-      });
-    });
-  </script>
 
 </body>
 
