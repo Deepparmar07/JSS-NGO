@@ -3,31 +3,32 @@
 ## 1. Website Structure
 ```
 JSS_NGO_Website/
+├── css/                    # Website stylesheets
+├── demo/                   # Demo pages and styles
+├── documentation/          # Project documentation
+├── images/                 # Image assets
+├── js/                     # Browser scripts and API URL config
 ├── index.html              # Home page
-├── aboutus.html           # About Us page
-├── volunteers.html        # Volunteers page
-├── volunteersForm.html    # Volunteer registration form
-├── events.html           # Events page
-├── projects.html         # Projects page
-├── corona.html          # COVID-19 information
-├── contactus.html       # Contact page
-├── donation.html        # Donation page
-├── photos.html          # Photo gallery
-├── videos.html          # Video gallery
-├── privacy.html         # Privacy policy
-├── images/              # Image assets
-├── style.css           # Main stylesheet
-├── style2.css          # Secondary stylesheet
-├── style3.css          # Tertiary stylesheet
-├── donation.css        # Donation page styles
-├── volunteer.css       # Volunteer page styles
-├── home.css           # Home page styles
-├── custom.js          # Custom JavaScript
-└── backend/           # Backend server
-    ├── server.js      # Main server file
-    ├── package.json   # Node.js dependencies
-    └── .env          # Environment variables
+├── aboutus.html            # About Us page
+├── volunteers.html         # Volunteers page
+├── volunteersForm.html     # Volunteer registration form
+├── events.html             # Events page
+├── projects.html           # Projects page
+├── corona.html             # COVID-19 information
+├── contactus.html          # Contact page
+├── donation.html           # Donation page
+├── photos.html             # Photo gallery
+├── videos.html             # Video gallery
+├── privacy.html            # Privacy policy
+├── server.js               # Render backend entry point
+├── email.js                # Backend email integration
+├── package.json            # Node.js dependencies and scripts
+└── .env.example            # Safe environment-variable template
 ```
+
+Website pages remain at the root for Netlify publishing. Backend entry files
+remain at the root for the Render start command. The private local `.env` file
+is ignored and must never be committed.
 
 ## 2. User Flow
 1. Home Page (index.html)
@@ -132,4 +133,3 @@ JSS_NGO_Website/
    - Availability
    - Status
    - Timestamp
-

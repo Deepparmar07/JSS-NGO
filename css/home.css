@@ -446,7 +446,7 @@
            height: 100%;
            background-size:cover;
            transform: translateX( 700px );
-           background-image: url("images/31.jpg");
+           background-image: url("../images/31.jpg");
            background-repeat:no-repeat;
            background-position: center;
            animation: opaqTransition 26s cubic-bezier(0, 0, 0, 0.97) infinite;
@@ -455,21 +455,21 @@
     
           .slick .card_part.card_part-two {
            z-index: 6;
-           background-image: url("images/32.jpg");
+           background-image: url("../images/32.jpg");
            animation-delay: 7s;
            background-repeat:no-repeat;
           }
     
           .slick .card_part.card_part-three {
            z-index: 5;
-           background-image: url("images/33.jpg");
+           background-image: url("../images/33.jpg");
            animation-delay: 14s;
            background-repeat:no-repeat;
            }
     
           .slick .card_part.card_part-four {
            z-index: 4;
-           background-image: url("images/35.jpeg");
+           background-image: url("../images/35.jpeg");
            animation-delay: 21s;
            background-repeat:no-repeat;
            }

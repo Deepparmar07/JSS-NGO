@@ -20,7 +20,7 @@ The project combines a static, multi-page website with an Express API for donati
 - Nodemailer email notifications and donation receipts
 - Environment-based configuration for database, payment, and email credentials
 
-> **Before going live:** The deployed `api-config.js` points to the Render service. Confirm Render's CORS configuration allows `https://jsngo.netlify.app`, then verify the contact and volunteer forms and configure any required provider credentials. The current Razorpay payment button is kept as the page's payment option, but is **not connected to this backend's order-verification API**. Payments through that button are therefore not automatically saved as donation records in this app's MongoDB or followed by its email receipt flow.
+> **Before going live:** The deployed `js/api-config.js` points to the Render service. Confirm Render's CORS configuration allows `https://jsngo.netlify.app`, then verify the contact and volunteer forms and configure any required provider credentials. The current Razorpay payment button is kept as the page's payment option, but is **not connected to this backend's order-verification API**. Payments through that button are therefore not automatically saved as donation records in this app's MongoDB or followed by its email receipt flow.
 
 ## Go-live checklist
 
@@ -29,7 +29,7 @@ deployments, but production readiness depends on configuring and testing both
 services. Do not assume that a successful Render deployment means that payments,
 email, and database access have all been verified.
 
-- [x] Set `window.JSS_API_BASE_URL` in `api-config.js` to
+- [x] Set `window.JSS_API_BASE_URL` in `js/api-config.js` to
   `https://jss-ngo.onrender.com`; the deployed Netlify config was verified.
 - [ ] In Render, set `MONGODB_URI`, the Razorpay keys, SMTP settings, `ADMIN_API_KEY`,
   and `FRONTEND_ORIGIN=https://jsngo.netlify.app` as applicable.
@@ -89,10 +89,14 @@ Razorpay dashboard. Never commit production secrets or put them in frontend code
 .
 ├── .vscode/
 │   └── settings.json             # VS Code Explorer/search settings
+├── css/                          # Website stylesheets
 ├── demo/                         # Demo pages and demo styles
 ├── documentation/
 │   └── website_workflow.md       # Website structure and user-flow notes
 ├── images/                       # Website images and media
+├── js/                           # Browser-side JavaScript
+│   ├── api-config.js              # Public website-to-API URL
+│   └── custom.js                  # Browser interactions
 ├── index.html                    # Home page
 ├── aboutus.html                  # Organisation information
 ├── projects.html                 # Projects
@@ -105,9 +109,6 @@ Razorpay dashboard. Never commit production secrets or put them in frontend code
 ├── videos.html                   # Video gallery
 ├── corona.html                   # COVID-19 information
 ├── privacy.html                  # Privacy policy
-├── *.css                         # Page and shared stylesheets
-├── custom.js                     # Browser interactions
-├── api-config.js                 # Public website-to-API URL
 ├── server.js                     # Express API and service integrations
 ├── email.js                      # Server-side email notifications
 ├── testConnection.js             # MongoDB connection test utility
@@ -155,7 +156,7 @@ Open `.env` and fill in the Atlas username, cluster host, database name, and URL
 
 In MongoDB Atlas, ensure the cluster is active and the application host is allowed under **Network Access**.
 
-Set the backend URL in `api-config.js`:
+Set the backend URL in `js/api-config.js`:
 
 ```js
 window.JSS_API_BASE_URL = 'https://YOUR-RENDER-SERVICE.onrender.com';
@@ -184,7 +185,7 @@ The API listens on `process.env.PORT` when set, or port `5000` locally. The HTML
 1. Connect the GitHub repository to a Render Web Service and set the start command to `npm start`.
 2. Add the backend variables from `.env.example` in the service's **Environment** settings. At minimum, set `MONGODB_URI`; add Razorpay, email, and `ADMIN_API_KEY` values to enable those features.
 3. Set `FRONTEND_ORIGIN` to the deployed website origin, for example `https://jsngo.netlify.app`.
-4. Set `api-config.js` to the public Render service URL and deploy the static website.
+4. Set `js/api-config.js` to the public Render service URL and deploy the static website.
 5. Deploy the latest backend commit and check `/api/health` and Render logs for database connection status.
 
 Render does not read your computer's local `.env` file. Configure environment variables in the Render dashboard.
@@ -218,7 +219,7 @@ Available backend environment variables:
 
 ## Operational notes
 
-- The static site and Express API are deployed separately. The deployed `api-config.js` points to `https://jss-ngo.onrender.com`; the Render CORS response must also allow the website's origin for browser form submissions.
+- The static site and Express API are deployed separately. The deployed `js/api-config.js` points to `https://jss-ngo.onrender.com`; the Render CORS response must also allow the website's origin for browser form submissions.
 - The current Razorpay payment button is not wired to `/api/create-order` or `/api/verify-payment`; its payments will not be stored by the backend donation model or trigger backend email receipts.
 - Contact and volunteer form delivery, as well as donation receipts, require working SMTP settings.
 - `/api/donations` requires a private admin key. Do not expose that key in browser code or commit it.
