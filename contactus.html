@@ -428,18 +428,18 @@
   src="https://code.jquery.com/jquery-2.2.4.min.js"
   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
   crossorigin="anonymous"></script>
-<script src="https://smtpjs.com/v3/smtp.js"></script>
- 
+<script src="api-config.js"></script>
 <script>  
 
     async function sendmail(event) {
         event.preventDefault();
         
-        const firstName = $('#FirstName').val();
-        const lastName = $('#LastName').val();
-        const email = $('#Sender').val();
-        const phone = $('#Number').val();
-        const message = $('#Message').val();
+        const form = event.target;
+        const firstName = $('#FirstName').val().trim();
+        const lastName = $('#LastName').val().trim();
+        const email = $('#Sender').val().trim();
+        const phone = $('#Number').val().trim();
+        const message = $('#Message').val().trim();
 
         // Validate form
         if (!firstName || !lastName || !email || !message) {
@@ -448,19 +448,13 @@
         }
 
         // Show loading state
-        const submitButton = event.target.querySelector('input[type="submit"]');
+        const submitButton = form.querySelector('input[type="submit"]');
         const originalText = submitButton.value;
         submitButton.value = 'Sending...';
         submitButton.disabled = true;
 
         try {
-            // First check if server is running
-            const serverCheck = await fetch('http://localhost:3000/test');
-            if (!serverCheck.ok) {
-                throw new Error('Server is not responding');
-            }
-
-            const response = await fetch('http://localhost:3000/send-email', {
+            const response = await fetch(window.jssApiUrl('/api/contact'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -474,13 +468,10 @@
                 })
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
             const data = await response.json();
-
-            if (data.success) {
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || `Request failed (${response.status})`);
+            } else {
                 alert('Your message has been sent. Thank you for contacting us.');
                 // Clear form
                 $('#FirstName').val('');
@@ -488,8 +479,6 @@
                 $('#Sender').val('');
                 $('#Number').val('');
                 $('#Message').val('');
-            } else {
-                throw new Error(data.message || 'Failed to send message');
             }
         } catch (error) {
             console.error('Error:', error);

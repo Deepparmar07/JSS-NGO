@@ -3,6 +3,10 @@ require('dotenv').config();
 
 async function testEmail() {
     try {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            throw new Error('EMAIL_USER and EMAIL_PASS environment variables are required');
+        }
+
         // Create transporter
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
@@ -12,9 +16,6 @@ async function testEmail() {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             },
-            tls: {
-                rejectUnauthorized: false
-            }
         });
 
         // Verify transporter
@@ -26,7 +27,7 @@ async function testEmail() {
         console.log('Sending test email...');
         const info = await transporter.sendMail({
             from: `"JSS NGO Test" <${process.env.EMAIL_USER}>`,
-            to: 'evilsocket19@gmail.com',
+            to: process.env.CONTACT_EMAIL || process.env.EMAIL_USER,
             subject: 'Test Email from JSS NGO Website',
             html: '<h1>Test Email</h1><p>This is a test email to verify the email sending functionality.</p>'
         });

@@ -6,7 +6,7 @@ A community-focused website for JSS NGO, with information about the organisation
 
 ## About the project
 
-The project combines a static, multi-page website with a small Express API intended to support donation checkout. The site includes organisation information, project and event pages, volunteer information, photo and video galleries, and contact and privacy pages.
+The project combines a static, multi-page website with an Express API for donations, contact messages, and volunteer applications. The site also includes organisation information, project and event pages, photo and video galleries, and privacy information.
 
 ## Features
 
@@ -15,11 +15,12 @@ The project combines a static, multi-page website with a small Express API inten
 - Donation page with Razorpay checkout integration
 - Photo and video galleries
 - Contact and privacy pages
-- Express API routes for creating payment orders, verifying payments, and retrieving donation records
+- Express API routes for payments, contact messages, volunteer applications, and protected donation records
 - MongoDB persistence for completed donation records
-- Nodemailer email receipt flow after payment verification
+- Nodemailer email notifications and donation receipts
+- Environment-based configuration for database, payment, and email credentials
 
-> **Integration setup required:** Payment and email credentials in `server.js` are placeholders. The donation API and related checkout flows will not work until valid provider credentials are configured. The contact and volunteer forms also contain local-development service URLs; see [Known integration requirements](#known-integration-requirements).
+> **Before going live:** Set the provider credentials in Render and point `api-config.js` at the deployed Render service URL. Use Razorpay test credentials to verify the complete donation flow before accepting live payments.
 
 ## Technology
 
@@ -57,13 +58,15 @@ The project combines a static, multi-page website with a small Express API inten
 │   └── website_workflow.md   # Website structure and user-flow notes
 ├── demo/                     # Demo pages
 ├── server.js                 # Express API and service integrations
+├── email.js                  # Server-side email notifications
+├── api-config.js             # Public website-to-API URL configuration
 ├── testConnection.js         # MongoDB connection test utility
 ├── test-email.js             # Email test utility
 ├── *.html                    # Static website pages
 ├── *.css                     # Page and shared stylesheets
 ├── custom.js                 # Browser-side interactions
 ├── package.json              # Backend dependencies and scripts
-└── .env.example              # MongoDB configuration template
+└── .env.example              # Backend environment variable template
 ```
 
 ## Getting started
@@ -92,9 +95,17 @@ For local development, copy `.env.example` to `.env`:
 copy .env.example .env
 ```
 
-Open `.env` and replace `<URL_ENCODED_DB_PASSWORD>` with the password for your MongoDB Atlas database user. URL-encode special characters in the password. Keep `.env` private; it is ignored by Git and must never be committed.
+Open `.env` and fill in the Atlas username, cluster host, database name, and URL-encoded password. Set Razorpay test keys, SMTP credentials, and an admin API key as needed. Keep `.env` private; it is ignored by Git and must never be committed.
 
-The example URI selects the `epicapi` database. Change the database name in the URI if you intend to use a different database. In MongoDB Atlas, also ensure the cluster is active and the application host is allowed under **Network Access**.
+In MongoDB Atlas, ensure the cluster is active and the application host is allowed under **Network Access**.
+
+Set the backend URL in `api-config.js`:
+
+```js
+window.JSS_API_BASE_URL = 'https://YOUR-RENDER-SERVICE.onrender.com';
+```
+
+Replace the example host with the actual public URL shown for your Render service. For local development with a separately hosted static site, use `http://localhost:5000`.
 
 ### Start the API
 
@@ -114,40 +125,54 @@ The API listens on `process.env.PORT` when set, or port `5000` locally. The HTML
 
 ### Render
 
-1. Connect the GitHub repository to a Render Web Service.
-2. Set the start command to `npm start`.
-3. Add `MONGODB_URI` under the service's **Environment** settings using your complete Atlas connection URI. Do not include the URI in source code or commit a local `.env`.
-4. Deploy the latest commit and confirm the logs show the expected commit and a successful MongoDB connection.
+1. Connect the GitHub repository to a Render Web Service and set the start command to `npm start`.
+2. Add the backend variables from `.env.example` in the service's **Environment** settings. At minimum, set `MONGODB_URI`; add Razorpay, email, and `ADMIN_API_KEY` values to enable those features.
+3. Set `FRONTEND_ORIGIN` to the deployed website origin, for example `https://jssngo.netlify.app`.
+4. Set `api-config.js` to the public Render service URL and deploy the static website.
+5. Deploy the latest backend commit and check `/api/health` and Render logs for database connection status.
 
 Render does not read your computer's local `.env` file. Configure environment variables in the Render dashboard.
 
 ### Required integration configuration
 
-Currently, only `MONGODB_URI` is read from the environment by the API. Razorpay credentials and Gmail SMTP settings are still placeholders in `server.js`; configure them securely before enabling payment processing or email receipts. Do not use real credentials in committed source files.
+Available backend environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `MONGODB_URI` | MongoDB Atlas connection URI |
+| `RAZORPAY_KEY_ID` | Razorpay public key ID, returned by `/api/config` |
+| `RAZORPAY_KEY_SECRET` | Private Razorpay API/signature secret |
+| `EMAIL_USER`, `EMAIL_PASS` | SMTP account credentials |
+| `CONTACT_EMAIL` | Destination for contact/volunteer messages; defaults to `EMAIL_USER` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE` | SMTP server settings |
+| `ADMIN_API_KEY` | Secret required by the donations administration endpoint |
+| `FRONTEND_ORIGIN` | Comma-separated allowlist of website origins for CORS |
 
 ## API
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
+| `GET` | `/api/health` | Reports API and MongoDB connection status |
+| `GET` | `/api/config` | Returns the public Razorpay key ID |
 | `POST` | `/api/create-order` | Creates a Razorpay order |
-| `POST` | `/api/verify-payment` | Verifies a Razorpay signature, stores a donation, and sends a receipt |
-| `GET` | `/api/donations` | Returns stored donation records |
+| `POST` | `/api/verify-payment` | Verifies the signed payment and order amount, stores a donation, and attempts to send a receipt |
+| `POST` | `/api/contact` | Sends a contact-form message to the configured email |
+| `POST` | `/api/volunteers` | Sends a volunteer application to the configured email |
+| `GET` | `/api/donations` | Lists donation records; requires the `x-admin-api-key` header |
 
-The API does not currently define authentication for `GET /api/donations`. Restrict or protect this route before exposing it publicly.
+## Operational notes
 
-## Known integration requirements
-
-- `donation.html` currently calls the API at `http://localhost:5000`. Update the frontend API base URL for the deployed backend and use HTTPS in production.
-- `contactus.html` references a local service at `http://localhost:3000`; that service is not included in this repository.
-- The volunteer form uses a client-side email flow. Review its provider configuration before collecting real submissions.
-- Razorpay keys and Gmail SMTP credentials in `server.js` are placeholders and are not currently environment-based.
+- The static site and Express API are deployed separately. `api-config.js` must point to the Render API and Render's `FRONTEND_ORIGIN` must allow the website's origin.
+- Contact and volunteer form delivery, as well as donation receipts, require working SMTP settings.
+- `/api/donations` requires a private admin key. Do not expose that key in browser code or commit it.
+- Rotate credentials that have previously been committed or shared. Previously exposed SMTP/payment credentials must be revoked or rotated at their providers.
 - No automated test suite is configured in `package.json`.
 
 ## Security and data handling
 
 - Keep `.env` and all production credentials out of Git and public messages.
 - Rotate any credentials that have previously been committed or shared.
-- Restrict API access, configure CORS for trusted origins, and protect administrative data routes before production use.
+- Keep `FRONTEND_ORIGIN` restricted to trusted origins and protect administrative data routes.
 - Test payment flows with provider test credentials before accepting live donations.
 - Handle donor personal information and receipts in accordance with applicable privacy requirements.
 

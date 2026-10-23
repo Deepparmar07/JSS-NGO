@@ -104,7 +104,7 @@
 
         <div class="contact-form">
             <h2>Send us a Message</h2>
-            <form action="javascript:sendmail()" method="post">
+            <form onsubmit="return sendmail(event)" method="post">
                 <div class="form-group">
                     <label for="name">Name</label>
                     <input type="text" id="name" name="name" required>
@@ -148,36 +148,37 @@
         </div>
     </footer>
 
-    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <script src="../api-config.js"></script>
     <script>
-        function sendmail() {
-            var name = document.getElementById('name').value;
-            var email = document.getElementById('email').value;
-            var phone = document.getElementById('phone').value;
-            var message = document.getElementById('message').value;
-
-            var Body = 'Name: ' + name + '<br>Email: ' + email + '<br>Phone: ' + phone + '<br>Message: ' + message;
-
-            Email.send({
-                SecureToken: "fbf31702-bb7f-4a4e-9c1c-4ccf17ee777f",
-                To: 'maheshdbabar9340@gmail.com',
-                From: email,
-                Subject: "New message from " + name,
-                Body: Body
-            }).then(
-                message => {
-                    if (message == 'OK') {
-                        alert('Your message has been sent. Thank you for contacting us.');
-                        document.getElementById('name').value = '';
-                        document.getElementById('email').value = '';
-                        document.getElementById('phone').value = '';
-                        document.getElementById('message').value = '';
-                    } else {
-                        console.error(message);
-                        alert('There was an error sending your message. Please try again.');
-                    }
+        async function sendmail(event) {
+            event.preventDefault();
+            const form = event.target;
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            try {
+                const response = await fetch(window.jssApiUrl('/api/contact'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firstName: document.getElementById('name').value.trim(),
+                        email: document.getElementById('email').value.trim(),
+                        phone: document.getElementById('phone').value.trim(),
+                        message: document.getElementById('message').value.trim()
+                    })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || `Request failed (${response.status})`);
                 }
-            );
+                alert('Your message has been sent. Thank you for contacting us.');
+                form.reset();
+            } catch (error) {
+                console.error('Unable to send contact message:', error);
+                alert(`Unable to send your message: ${error.message}`);
+            } finally {
+                submitButton.disabled = false;
+            }
+            return false;
         }
     </script>
 </body>

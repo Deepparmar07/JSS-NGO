@@ -120,7 +120,35 @@
     <h3 style="color: blue; font-family: Georgia, 'Times New Roman', Times, serif;">OR</h3>
 
     <br><br>   <br><br>
-    <form><script src="https://checkout.razorpay.com/v1/payment-button.js" data-payment_button_id="pl_Q3W5xFLrl4UOW9" async> </script> </form> 
+    <section class="container" aria-labelledby="online-donation-heading">
+      <h2 id="online-donation-heading">Donate securely online</h2>
+      <p>Select an amount and enter your details to continue to Razorpay Checkout.</p>
+      <div class="form-group" aria-label="Select donation amount">
+        <button type="button" class="amount-btn btn btn-default" data-amount="500">₹500</button>
+        <button type="button" class="amount-btn btn btn-default" data-amount="1000">₹1,000</button>
+        <button type="button" class="amount-btn btn btn-default" data-amount="2500">₹2,500</button>
+        <label for="custom-amount">Or enter an amount (minimum ₹100)</label>
+        <input class="form-control" id="custom-amount" type="number" min="100" step="1" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label for="donor-name">Name</label>
+        <input class="form-control" id="donor-name" type="text" maxlength="200" required>
+      </div>
+      <div class="form-group">
+        <label for="donor-email">Email</label>
+        <input class="form-control" id="donor-email" type="email" maxlength="254" required>
+      </div>
+      <div class="form-group">
+        <label for="donor-phone">Phone</label>
+        <input class="form-control" id="donor-phone" type="tel" maxlength="40" required>
+      </div>
+      <div class="form-group">
+        <label for="donor-pan">PAN (optional)</label>
+        <input class="form-control" id="donor-pan" type="text" maxlength="20">
+      </div>
+      <button id="donate-button" type="button" class="btn btn-primary">Continue to payment</button>
+      <p id="donation-status" role="status" aria-live="polite"></p>
+    </section>
     <br><br>   <br><br>
     <h4 class="quote">The measure of life is not its duration, but its donation.</h4>
     <h6 class="quote-name">~ Jenil Sarvani</h6>
@@ -163,71 +191,77 @@
     integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
     crossorigin="anonymous"></script>
 
+  <script src="api-config.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Amount button selection
       const amountButtons = document.querySelectorAll('.amount-btn');
       const customAmount = document.getElementById('custom-amount');
-      let selectedAmount = 500; // Default amount
+      const status = document.getElementById('donation-status');
+      let selectedAmount = 500;
 
-      amountButtons.forEach(button => {
+      amountButtons[0].classList.add('selected');
+      amountButtons.forEach((button) => {
         button.addEventListener('click', function() {
-          amountButtons.forEach(btn => btn.classList.remove('selected'));
-          this.classList.add('selected');
-          selectedAmount = parseInt(this.dataset.amount);
+          amountButtons.forEach((item) => item.classList.remove('selected'));
+          button.classList.add('selected');
+          selectedAmount = Number(button.dataset.amount);
           customAmount.value = '';
         });
       });
-
       customAmount.addEventListener('input', function() {
-        amountButtons.forEach(btn => btn.classList.remove('selected'));
-        selectedAmount = parseInt(this.value) || 0;
+        amountButtons.forEach((button) => button.classList.remove('selected'));
+        selectedAmount = Number(customAmount.value);
       });
 
-      // Razorpay Integration
       document.getElementById('donate-button').addEventListener('click', async function() {
-        const name = document.getElementById('donor-name').value;
-        const email = document.getElementById('donor-email').value;
-        const phone = document.getElementById('donor-phone').value;
-        const pan = document.getElementById('donor-pan').value;
+        const name = document.getElementById('donor-name').value.trim();
+        const email = document.getElementById('donor-email').value.trim();
+        const phone = document.getElementById('donor-phone').value.trim();
+        const pan = document.getElementById('donor-pan').value.trim();
+        const button = this;
 
-        if (!name || !email || !phone || selectedAmount < 100) {
-          alert('Please fill in all required fields and enter a valid amount');
+        if (!name || !email || !phone || !Number.isSafeInteger(selectedAmount) || selectedAmount < 100) {
+          status.textContent = 'Enter your name, a valid email and phone number, and an amount of at least ₹100.';
           return;
         }
 
+        button.disabled = true;
+        status.textContent = 'Connecting to secure checkout...';
         try {
-          // Create order on backend
-          const orderResponse = await fetch('http://localhost:5000/api/create-order', {
+          const configResponse = await fetch(window.jssApiUrl('/api/config'));
+          const config = await configResponse.json();
+          if (!configResponse.ok || !config.razorpayKeyId) {
+            throw new Error(config.error || 'Online payments are not configured yet.');
+          }
+
+          const orderResponse = await fetch(window.jssApiUrl('/api/create-order'), {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ amount: selectedAmount })
           });
+          const order = await orderResponse.json();
+          if (!orderResponse.ok) {
+            throw new Error(order.error || 'Unable to create payment order.');
+          }
 
-          const orderData = await orderResponse.json();
-
-          const options = {
-            key: 'YOUR_RAZORPAY_KEY_ID', // Replace with your actual Razorpay key
-            amount: selectedAmount * 100,
-            currency: 'INR',
+          const checkout = new Razorpay({
+            key: config.razorpayKeyId,
+            amount: order.amount,
+            currency: order.currency,
             name: 'JSS NGO',
             description: 'Donation to JSS',
             image: 'images/JSS.png',
-            order_id: orderData.id,
-            handler: async function(response) {
+            order_id: order.id,
+            prefill: { name, email, contact: phone },
+            theme: { color: '#009ffd' },
+            handler: async function(payment) {
+              status.textContent = 'Verifying your payment...';
               try {
-                // Verify payment on backend
-                const verifyResponse = await fetch('http://localhost:5000/api/verify-payment', {
+                const verifyResponse = await fetch(window.jssApiUrl('/api/verify-payment'), {
                   method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_signature: response.razorpay_signature,
+                    ...payment,
                     name,
                     email,
                     phone,
@@ -235,41 +269,32 @@
                     amount: selectedAmount
                   })
                 });
-
-                const verifyData = await verifyResponse.json();
-
-                if (verifyData.success) {
-                  alert('Payment Successful! Thank you for your donation. A receipt has been sent to your email.');
-                  // Clear form
-                  document.getElementById('donor-name').value = '';
-                  document.getElementById('donor-email').value = '';
-                  document.getElementById('donor-phone').value = '';
-                  document.getElementById('donor-pan').value = '';
-                  customAmount.value = '';
-                  amountButtons.forEach(btn => btn.classList.remove('selected'));
-                } else {
-                  alert('Payment verification failed. Please contact support.');
+                const result = await verifyResponse.json();
+                if (!verifyResponse.ok || !result.success) {
+                  throw new Error(result.error || 'Payment verification failed.');
                 }
+                status.textContent = result.emailSent
+                  ? 'Thank you! Your donation was received and a receipt was emailed to you.'
+                  : 'Thank you! Your donation was received. Email receipts are temporarily unavailable.';
               } catch (error) {
-                console.error('Error verifying payment:', error);
-                alert('Error verifying payment. Please contact support.');
+                console.error('Payment verification failed:', error);
+                status.textContent = `Payment completed, but verification needs assistance. Please contact us with your payment ID.`;
+              } finally {
+                button.disabled = false;
               }
             },
-            prefill: {
-              name: name,
-              email: email,
-              contact: phone
-            },
-            theme: {
-              color: '#009ffd'
+            modal: {
+              ondismiss: function() {
+                status.textContent = 'Payment was cancelled.';
+                button.disabled = false;
+              }
             }
-          };
-
-          const rzp = new Razorpay(options);
-          rzp.open();
+          });
+          checkout.open();
         } catch (error) {
-          console.error('Error creating order:', error);
-          alert('Error creating payment order. Please try again.');
+          console.error('Unable to start donation checkout:', error);
+          status.textContent = error.message;
+          button.disabled = false;
         }
       });
     });

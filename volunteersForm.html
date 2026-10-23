@@ -72,7 +72,7 @@
 
 <h1>VOLUNTEER FORM</h1>
 
-  <form action="javascript:sendmail()" method="post">
+  <form onsubmit="return sendmail(event)" method="post">
 
     <div class="contentform">
       <div id="sendmessage"> Your message has been sent successfully. Thank you. </div>
@@ -153,47 +153,43 @@
   src="https://code.jquery.com/jquery-2.2.4.min.js"
   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
   crossorigin="anonymous"></script>
-<script src="https://smtpjs.com/v3/smtp.js"></script>
- 
+<script src="api-config.js"></script>
 <script>  
 
-     function sendmail(){
-    
-			var name = $('#Name').val();
-			var email = $('#email').val();
-			var number = $('#number').val();
-            var skills = $('#skills').val();
-            var address = $('#address').val();
-            var data1 = $('#data1').val();
-            var data2 = $('#data2').val();
+    async function sendmail(event) {
+      event.preventDefault();
+      const form = event.target;
+      const submitButton = form.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
 
-
-			var Body='Name: '+' '+name+'<br>Email: '+' '+email+'<br>Contact No.: '+' '+number+'<br>Skills: '+' '+skills+'<br>Address: '+' '+address+'<br>Tell us About Yourself: '+' '+data1+'<br>What you can do for us?: '+' '+data2;
-
-			Email.send({
-        SecureToken:"fbf31702-bb7f-4a4e-9c1c-4ccf17ee777f",
-				To: 'maheshdbabar9340@gmail.com',
-				From: email,
-				Subject: "New message on Volunteers from "+name,
-				Body: Body
-			}).then(
-				message =>{
-					
-					if(message=='OK'){
-					alert('Your form has been submitted. Thank you for contacting us.');
-					}
-					else{
-						console.error (message);
-						alert('There is error at sending message. ')
-						
-					}
-
-				}
-			);
-
-
-
-		}
+      try {
+        const response = await fetch(window.jssApiUrl('/api/volunteers'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: $('#Name').val().trim(),
+            email: $('#email').val().trim(),
+            phone: $('#number').val().trim(),
+            address: $('#address').val().trim(),
+            skills: $('#skills').val().trim(),
+            about: $('#data1').val().trim(),
+            contribution: $('#data2').val().trim()
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || `Request failed (${response.status})`);
+        }
+        alert('Your volunteer form has been submitted. Thank you!');
+        form.reset();
+      } catch (error) {
+        console.error('Unable to submit volunteer form:', error);
+        alert(`Unable to submit your form: ${error.message}`);
+      } finally {
+        submitButton.disabled = false;
+      }
+      return false;
+    }
 
  </script>
 
