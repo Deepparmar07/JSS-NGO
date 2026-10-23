@@ -88,27 +88,42 @@ Razorpay dashboard. Never commit production secrets or put them in frontend code
 ```text
 .
 ├── .vscode/
-│   └── settings.json         # Workspace Explorer/search settings
-├── images/                   # Website images and media
+│   └── settings.json             # VS Code Explorer/search settings
+├── demo/                         # Demo pages and demo styles
 ├── documentation/
-│   └── website_workflow.md   # Website structure and user-flow notes
-├── demo/                     # Demo pages
-├── *.html                    # Static pages kept at root for Netlify publishing
-├── *.css                     # Stylesheets used by the static pages
-├── server.js                 # Express API and service integrations
-├── email.js                  # Server-side email notifications
-├── api-config.js             # Public website-to-API URL configuration
-├── testConnection.js         # MongoDB connection test utility
-├── test-email.js             # Email test utility
-├── custom.js                 # Browser-side interactions
-├── package.json              # Backend dependencies and scripts
-└── .env.example              # Backend environment variable template
+│   └── website_workflow.md       # Website structure and user-flow notes
+├── images/                       # Website images and media
+├── index.html                    # Home page
+├── aboutus.html                  # Organisation information
+├── projects.html                 # Projects
+├── events.html                   # Events
+├── volunteers.html               # Volunteer information
+├── volunteersForm.html           # Volunteer application form
+├── donation.html                 # Donation page
+├── contactus.html                # Contact form
+├── photos.html                   # Photo gallery
+├── videos.html                   # Video gallery
+├── corona.html                   # COVID-19 information
+├── privacy.html                  # Privacy policy
+├── *.css                         # Page and shared stylesheets
+├── custom.js                     # Browser interactions
+├── api-config.js                 # Public website-to-API URL
+├── server.js                     # Express API and service integrations
+├── email.js                      # Server-side email notifications
+├── testConnection.js             # MongoDB connection test utility
+├── test-email.js                 # Email test utility
+├── package.json                  # Backend dependencies and scripts
+├── package-lock.json             # Locked npm dependency versions
+├── .env.example                  # Safe backend configuration template
+├── .gitignore                    # Excludes local secrets and generated files
+└── README.md                     # Setup, deployment, and project guide
 ```
 
 The website pages and backend entry point remain at the repository root to
 match the current Netlify publish and Render start-command setup. Moving them
 into separate application folders would require updating those hosting settings
-and the pages' relative asset paths.
+and the pages' relative asset paths. The local `.env` file is intentionally not
+listed; it is private, ignored by Git, and must not be committed.
 
 ## Getting started
 
