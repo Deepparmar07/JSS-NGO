@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 // Test connection function
 const testConnection = async () => {
   try {
-    // Note: The password contains @ symbol, so we need to encode it
-    const username = 'evilsocket19';
-    const password = encodeURIComponent('Deep@1234');
-    const uri = `mongodb+srv://${username}:${password}@cluster0.6vrhzjn.mongodb.net/jss_ngo?retryWrites=true&w=majority&appName=Cluster0`;
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('MONGODB_URI environment variable is required');
+    }
     
     console.log('Attempting to connect to MongoDB...');
-    console.log('Connection string:', uri);
     
     const conn = await mongoose.connect(uri, {
       useNewUrlParser: true,

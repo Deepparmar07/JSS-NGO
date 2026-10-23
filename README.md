@@ -68,7 +68,19 @@ The website files are static HTML and can be served from the repository root wit
 
 ### Backend configuration and secrets
 
-The current backend configuration is in `server.js`. Configure your own development database, Razorpay, and SMTP credentials before using those integrations. Do not commit real credentials. Before production use, move secrets into environment-based configuration or the hosting provider's secret manager; rotate any credentials that have previously been exposed in source control.
+Set `MONGODB_URI` before starting the backend. For local development, copy
+`.env.example` to `.env` and replace `<URL_ENCODED_DB_PASSWORD>` with the
+URL-encoded password for your MongoDB Atlas database user. The `.env` file is
+ignored by Git; never commit or share it.
+
+The example URI uses the `epicapi` database shown in Atlas Data Explorer. Use the
+database name you intend to access. For Render, add the completed URI as the
+`MONGODB_URI` environment variable in the service's **Environment** settings;
+Render does not read your local `.env` file.
+
+Configure Razorpay and SMTP credentials through environment-based configuration
+or the hosting provider's secret manager before using those integrations. Rotate
+any credentials that have previously been exposed in source control.
 
 ## API routes
 

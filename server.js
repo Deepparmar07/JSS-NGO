@@ -1,4 +1,3 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,10 +9,8 @@ const crypto = require('crypto');
 // Load environment variables
 dotenv.config();
 
-// MongoDB Connection Configuration
-const username = 'evilsocket19';
-const password = encodeURIComponent('Deep@1234');
-const uri = `mongodb+srv://${username}:${password}@cluster0.6vrhzjn.mongodb.net/jss_ngo?retryWrites=true&w=majority&appName=Cluster0`;
+// Set MONGODB_URI in the environment; do not commit database credentials.
+const uri = process.env.MONGODB_URI;
 
 // Razorpay Configuration
 const razorpayConfig = {
@@ -30,6 +27,10 @@ app.use(express.json());
 // MongoDB Connection with better error handling
 const connectDB = async () => {
   try {
+    if (!uri) {
+      throw new Error('MONGODB_URI environment variable is required');
+    }
+
     const conn = await mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -189,27 +190,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-
-run().catch(console.dir);
