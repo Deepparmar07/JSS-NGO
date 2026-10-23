@@ -22,6 +22,35 @@ The project combines a static, multi-page website with an Express API for donati
 
 > **Before going live:** Set the provider credentials in Render and point `api-config.js` at the deployed Render service URL. Use Razorpay test credentials to verify the complete donation flow before accepting live payments.
 
+## Go-live checklist
+
+The application code is prepared for separate Netlify (website) and Render (API)
+deployments, but production readiness depends on configuring and testing both
+services. Do not assume that a successful Render deployment means that payments,
+email, and database access have all been verified.
+
+- [ ] Set `window.JSS_API_BASE_URL` in `api-config.js` to the public URL of the JSS
+  NGO Render API, then deploy the updated website to Netlify.
+- [ ] In Render, set `MONGODB_URI`, the Razorpay keys, SMTP settings, `ADMIN_API_KEY`,
+  and `FRONTEND_ORIGIN=https://jssngo.netlify.app` as applicable.
+- [ ] Confirm Render logs report a successful MongoDB connection and that
+  `https://YOUR-RENDER-SERVICE.onrender.com/api/health` reports
+  `"database":"connected"`.
+- [ ] Add **JSS NGO's own website URL** (`https://jssngo.netlify.app`) to Razorpay
+  Website/App details and wait for that website's approval. Approval of another
+  site, such as Epixbox, is separate. The Razorpay dashboard screenshot indicated
+  an estimated review time of 24–48 hours; check the dashboard for the current
+  status and any further requests.
+- [ ] While JSS NGO review is pending, use Razorpay Test Mode credentials and
+  verify a complete test donation, database record, and email receipt. Use live
+  Razorpay keys only after JSS NGO is approved and the test flow succeeds.
+- [ ] Check that public donation, contact, and volunteer forms reach the Render
+  API and that the intended recipient receives email.
+
+The Razorpay review estimate is not a guarantee, and this repository cannot show
+whether an application has been submitted or approved. Verify approval in the
+Razorpay dashboard. Never commit production secrets or put them in frontend code.
+
 ## Technology
 
 | Area | Technologies |
