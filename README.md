@@ -2,7 +2,7 @@
 
 A community-focused website for JSS NGO, with information about the organisation, its projects and events, and ways to volunteer, donate, and get in touch.
 
-**Live website:** [jssngo.netlify.app](https://jssngo.netlify.app/)
+**Live website:** [jssngo.netlify.app](https://jsngo.netlify.app/)
 
 ## About the project
 
