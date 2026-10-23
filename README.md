@@ -2,7 +2,7 @@
 
 A community-focused website for JSS NGO, with information about the organisation, its projects and events, and ways to volunteer, donate, and get in touch.
 
-**Live website:** [jssngo.netlify.app](https://jsngo.netlify.app/)
+**Live website:** [jsngo.netlify.app](https://jsngo.netlify.app/)
 
 ## About the project
 
@@ -32,11 +32,11 @@ email, and database access have all been verified.
 - [ ] Set `window.JSS_API_BASE_URL` in `api-config.js` to the public URL of the JSS
   NGO Render API, then deploy the updated website to Netlify.
 - [ ] In Render, set `MONGODB_URI`, the Razorpay keys, SMTP settings, `ADMIN_API_KEY`,
-  and `FRONTEND_ORIGIN=https://jssngo.netlify.app` as applicable.
+  and `FRONTEND_ORIGIN=https://jsngo.netlify.app` as applicable.
 - [ ] Confirm Render logs report a successful MongoDB connection and that
   `https://YOUR-RENDER-SERVICE.onrender.com/api/health` reports
   `"database":"connected"`.
-- [ ] Add **JSS NGO's own website URL** (`https://jssngo.netlify.app`) to Razorpay
+- [ ] Add **JSS NGO's own website URL** (`https://jsngo.netlify.app`) to Razorpay
   Website/App details and wait for that website's approval. Approval of another
   site, such as Epixbox, is separate. The Razorpay dashboard screenshot indicated
   an estimated review time of 24–48 hours; check the dashboard for the current
@@ -82,21 +82,28 @@ Razorpay dashboard. Never commit production secrets or put them in frontend code
 
 ```text
 .
+├── .vscode/
+│   └── settings.json         # Workspace Explorer/search settings
 ├── images/                   # Website images and media
 ├── documentation/
 │   └── website_workflow.md   # Website structure and user-flow notes
 ├── demo/                     # Demo pages
+├── *.html                    # Static pages kept at root for Netlify publishing
+├── *.css                     # Stylesheets used by the static pages
 ├── server.js                 # Express API and service integrations
 ├── email.js                  # Server-side email notifications
 ├── api-config.js             # Public website-to-API URL configuration
 ├── testConnection.js         # MongoDB connection test utility
 ├── test-email.js             # Email test utility
-├── *.html                    # Static website pages
-├── *.css                     # Page and shared stylesheets
 ├── custom.js                 # Browser-side interactions
 ├── package.json              # Backend dependencies and scripts
 └── .env.example              # Backend environment variable template
 ```
+
+The website pages and backend entry point remain at the repository root to
+match the current Netlify publish and Render start-command setup. Moving them
+into separate application folders would require updating those hosting settings
+and the pages' relative asset paths.
 
 ## Getting started
 
@@ -156,7 +163,7 @@ The API listens on `process.env.PORT` when set, or port `5000` locally. The HTML
 
 1. Connect the GitHub repository to a Render Web Service and set the start command to `npm start`.
 2. Add the backend variables from `.env.example` in the service's **Environment** settings. At minimum, set `MONGODB_URI`; add Razorpay, email, and `ADMIN_API_KEY` values to enable those features.
-3. Set `FRONTEND_ORIGIN` to the deployed website origin, for example `https://jssngo.netlify.app`.
+3. Set `FRONTEND_ORIGIN` to the deployed website origin, for example `https://jsngo.netlify.app`.
 4. Set `api-config.js` to the public Render service URL and deploy the static website.
 5. Deploy the latest backend commit and check `/api/health` and Render logs for database connection status.
 

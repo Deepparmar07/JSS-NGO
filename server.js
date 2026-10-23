@@ -9,7 +9,7 @@ const { sendContactEmail, sendDonationReceipt, sendVolunteerEmail } = require('.
 dotenv.config();
 
 const app = express();
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'https://jssngo.netlify.app')
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'https://jsngo.netlify.app')
   .split(',')
   .map((origin) => origin.trim());
 
