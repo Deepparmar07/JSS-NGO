@@ -20,7 +20,7 @@ The project combines a static, multi-page website with an Express API for donati
 - Nodemailer email notifications and donation receipts
 - Environment-based configuration for database, payment, and email credentials
 
-> **Before going live:** Set the provider credentials in Render and point `api-config.js` at the deployed Render service URL. The current Razorpay payment button is kept as the page's payment option, but is **not connected to this backend's order-verification API**. Payments through that button are therefore not automatically saved as donation records in this app's MongoDB or followed by its email receipt flow.
+> **Before going live:** The deployed `api-config.js` points to the Render service. Confirm Render's CORS configuration allows `https://jsngo.netlify.app`, then verify the contact and volunteer forms and configure any required provider credentials. The current Razorpay payment button is kept as the page's payment option, but is **not connected to this backend's order-verification API**. Payments through that button are therefore not automatically saved as donation records in this app's MongoDB or followed by its email receipt flow.
 
 ## Go-live checklist
 
@@ -29,13 +29,15 @@ deployments, but production readiness depends on configuring and testing both
 services. Do not assume that a successful Render deployment means that payments,
 email, and database access have all been verified.
 
-- [ ] Set `window.JSS_API_BASE_URL` in `api-config.js` to the public URL of the JSS
-  NGO Render API, then deploy the updated website to Netlify.
+- [x] Set `window.JSS_API_BASE_URL` in `api-config.js` to
+  `https://jss-ngo.onrender.com`; the deployed Netlify config was verified.
 - [ ] In Render, set `MONGODB_URI`, the Razorpay keys, SMTP settings, `ADMIN_API_KEY`,
   and `FRONTEND_ORIGIN=https://jsngo.netlify.app` as applicable.
-- [ ] Confirm Render logs report a successful MongoDB connection and that
-  `https://YOUR-RENDER-SERVICE.onrender.com/api/health` reports
+- [x] `https://jss-ngo.onrender.com/api/health` reports
   `"database":"connected"`.
+- [ ] Confirm the Render CORS preflight response allows origin
+  `https://jsngo.netlify.app`. In the latest check, the API returned no
+  `Access-Control-Allow-Origin` header for that origin.
 - [ ] Add **JSS NGO's own website URL** (`https://jsngo.netlify.app`) to Razorpay
   Website/App details and wait for that website's approval. Approval of another
   site, such as Epixbox, is separate. The Razorpay dashboard screenshot indicated
@@ -201,8 +203,7 @@ Available backend environment variables:
 
 ## Operational notes
 
-- The static site and Express API are deployed separately. `api-config.js` must point to the Render API and Render's `FRONTEND_ORIGIN` must allow the website's origin.
-- `api-config.js` currently has an empty API URL. Contact and volunteer form submissions need the deployed Render API URL configured there.
+- The static site and Express API are deployed separately. The deployed `api-config.js` points to `https://jss-ngo.onrender.com`; the Render CORS response must also allow the website's origin for browser form submissions.
 - The current Razorpay payment button is not wired to `/api/create-order` or `/api/verify-payment`; its payments will not be stored by the backend donation model or trigger backend email receipts.
 - Contact and volunteer form delivery, as well as donation receipts, require working SMTP settings.
 - `/api/donations` requires a private admin key. Do not expose that key in browser code or commit it.
