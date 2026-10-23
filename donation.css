@@ -49,11 +49,44 @@ section h3{
     padding: 100px;
 }
 
-#account h3{
-    line-height: 50px;
-    letter-spacing: 1px;
-    margin-top: 70px;
-    margin-bottom: 70px;
+#account {
+    max-width: 760px;
+    margin: 0 auto 48px;
+}
+
+.account-details {
+    padding: 24px 32px;
+    border: 1px solid #d8e2ea;
+    border-radius: 8px;
+    background: #f8fbfd;
+    color: rgb(8, 81, 129);
+}
+
+.account-details p {
+    margin: 8px 0;
+    font-size: 17px;
+}
+
+.online-donation {
+    max-width: 760px;
+    margin-bottom: 48px;
+    padding: 28px 32px;
+    border: 1px solid #d8e2ea;
+    border-radius: 8px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+.online-donation .form-group {
+    margin: 18px 0;
+}
+
+.online-donation label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+#donation-status {
+    margin-top: 14px;
     color: rgb(8, 81, 129);
 }
 
@@ -69,6 +102,13 @@ section h3{
     margin-right: 20rem;
     color: rgb(192, 48, 12);
 
+}
+
+@media (max-width: 600px) {
+    .account-details,
+    .online-donation {
+        padding: 20px;
+    }
 }
 
 .navbar{
