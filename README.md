@@ -1,116 +1,158 @@
 # JSS NGO Website
 
-A responsive website for JSS NGO that presents the organisation, its programmes and events, and ways to get involved through volunteering, donations, and contact forms.
+A community-focused website for JSS NGO, with information about the organisation, its projects and events, and ways to volunteer, donate, and get in touch.
 
 **Live website:** [jssngo.netlify.app](https://jssngo.netlify.app/)
 
-## Highlights
+## About the project
 
-- Organisation, projects, events, and COVID-19 information pages
-- Photo and video galleries
-- Volunteer information and registration form
+The project combines a static, multi-page website with a small Express API intended to support donation checkout. The site includes organisation information, project and event pages, volunteer information, photo and video galleries, and contact and privacy pages.
+
+## Features
+
+- Organisation overview, projects, events, and COVID-19 information
+- Volunteer information and registration page
 - Donation page with Razorpay checkout integration
+- Photo and video galleries
 - Contact and privacy pages
-- Responsive layouts built with HTML, CSS, and browser-side JavaScript
-- Express API for creating and verifying donation orders, storing donation records in MongoDB, and sending payment email notifications
+- Express API routes for creating payment orders, verifying payments, and retrieving donation records
+- MongoDB persistence for completed donation records
+- Nodemailer email receipt flow after payment verification
+
+> **Integration setup required:** Payment and email credentials in `server.js` are placeholders. The donation API and related checkout flows will not work until valid provider credentials are configured. The contact and volunteer forms also contain local-development service URLs; see [Known integration requirements](#known-integration-requirements).
 
 ## Technology
 
-- **Frontend:** HTML5, CSS3, JavaScript, Bootstrap, jQuery
-- **Backend:** Node.js, Express
-- **Data:** MongoDB and Mongoose
-- **Integrations:** Razorpay and Nodemailer
+| Area | Technologies |
+| --- | --- |
+| Website | HTML, CSS, browser JavaScript, Bootstrap, jQuery |
+| API | Node.js, Express, CORS |
+| Database | MongoDB Atlas, Mongoose |
+| Payments | Razorpay |
+| Email | Nodemailer |
 
-## Repository layout
+## Pages
+
+| Page | File |
+| --- | --- |
+| Home | `index.html` |
+| About the organisation | `aboutus.html` |
+| Projects | `projects.html` |
+| Events | `events.html` |
+| Volunteer information | `volunteers.html` |
+| Volunteer form | `volunteersForm.html` |
+| Donations | `donation.html` |
+| Contact | `contactus.html` |
+| Photo gallery | `photos.html` |
+| Video gallery | `videos.html` |
+| COVID-19 information | `corona.html` |
+| Privacy policy | `privacy.html` |
+
+## Repository structure
 
 ```text
 .
-├── index.html                 # Home page
-├── aboutus.html               # About the organisation
-├── projects.html              # Projects and initiatives
-├── events.html                # Events
-├── volunteers.html            # Volunteer information
-├── volunteersForm.html        # Volunteer registration
-├── donation.html              # Donations
-├── contactus.html             # Contact page
-├── photos.html                # Photo gallery
-├── videos.html                # Video gallery
-├── privacy.html               # Privacy information
-├── *.css                      # Page and shared stylesheets
-├── custom.js                  # Browser interactions
-├── server.js                  # Express API and integrations
-├── package.json               # Backend dependencies and scripts
-├── images/                    # Website images and media
-└── documentation/
-    └── website_workflow.md    # Website structure and user-flow notes
+├── images/                   # Website images and media
+├── documentation/
+│   └── website_workflow.md   # Website structure and user-flow notes
+├── demo/                     # Demo pages
+├── server.js                 # Express API and service integrations
+├── testConnection.js         # MongoDB connection test utility
+├── test-email.js             # Email test utility
+├── *.html                    # Static website pages
+├── *.css                     # Page and shared stylesheets
+├── custom.js                 # Browser-side interactions
+├── package.json              # Backend dependencies and scripts
+└── .env.example              # MongoDB configuration template
 ```
 
-## Run locally
+## Getting started
 
 ### Requirements
 
-- Node.js 14 or newer (use a currently supported Node.js LTS release where possible)
+- Node.js 14 or newer (a currently supported Node.js LTS release is recommended)
 - npm
-- MongoDB, Razorpay, and SMTP credentials for the corresponding backend integrations
+- A MongoDB database for API-backed donation storage
 
-### Install and start the API
+Razorpay and Gmail SMTP credentials are additionally needed to enable the corresponding payment and email flows.
+
+### Install dependencies
 
 ```bash
-git clone https://github.com/DEEPPARMAR7/JSS-NGO.git
+git clone https://github.com/Deepparmar07/JSS-NGO.git
 cd JSS-NGO
 npm install
+```
+
+### Configure MongoDB
+
+For local development, copy `.env.example` to `.env`:
+
+```bash
+copy .env.example .env
+```
+
+Open `.env` and replace `<URL_ENCODED_DB_PASSWORD>` with the password for your MongoDB Atlas database user. URL-encode special characters in the password. Keep `.env` private; it is ignored by Git and must never be committed.
+
+The example URI selects the `epicapi` database. Change the database name in the URI if you intend to use a different database. In MongoDB Atlas, also ensure the cluster is active and the application host is allowed under **Network Access**.
+
+### Start the API
+
+```bash
 npm run dev
 ```
 
-The development server uses port `5000` by default. `npm start` starts the same Express server without Nodemon.
+For a normal start without Nodemon:
 
-The website files are static HTML and can be served from the repository root with a static file server. Backend-dependent features require the API to be running and configured.
+```bash
+npm start
+```
 
-### Backend configuration and secrets
+The API listens on `process.env.PORT` when set, or port `5000` locally. The HTML pages are static files and can be served with any static web server. Backend-dependent features require the API and integrations to be configured.
 
-Set `MONGODB_URI` before starting the backend. For local development, copy
-`.env.example` to `.env` and replace `<URL_ENCODED_DB_PASSWORD>` with the
-URL-encoded password for your MongoDB Atlas database user. The `.env` file is
-ignored by Git; never commit or share it.
+## Configuration and deployment
 
-The example URI uses the `epicapi` database shown in Atlas Data Explorer. Use the
-database name you intend to access. For Render, add the completed URI as the
-`MONGODB_URI` environment variable in the service's **Environment** settings;
-Render does not read your local `.env` file.
+### Render
 
-Configure Razorpay and SMTP credentials through environment-based configuration
-or the hosting provider's secret manager before using those integrations. Rotate
-any credentials that have previously been exposed in source control.
+1. Connect the GitHub repository to a Render Web Service.
+2. Set the start command to `npm start`.
+3. Add `MONGODB_URI` under the service's **Environment** settings using your complete Atlas connection URI. Do not include the URI in source code or commit a local `.env`.
+4. Deploy the latest commit and confirm the logs show the expected commit and a successful MongoDB connection.
 
-## API routes
+Render does not read your computer's local `.env` file. Configure environment variables in the Render dashboard.
 
-| Method | Route | Purpose |
+### Required integration configuration
+
+Currently, only `MONGODB_URI` is read from the environment by the API. Razorpay credentials and Gmail SMTP settings are still placeholders in `server.js`; configure them securely before enabling payment processing or email receipts. Do not use real credentials in committed source files.
+
+## API
+
+| Method | Endpoint | Description |
 | --- | --- | --- |
-| `POST` | `/api/create-order` | Create a Razorpay donation order |
-| `POST` | `/api/verify-payment` | Verify a payment and process the donation |
-| `GET` | `/api/donations` | Retrieve donation records |
+| `POST` | `/api/create-order` | Creates a Razorpay order |
+| `POST` | `/api/verify-payment` | Verifies a Razorpay signature, stores a donation, and sends a receipt |
+| `GET` | `/api/donations` | Returns stored donation records |
 
-## Scripts
+The API does not currently define authentication for `GET /api/donations`. Restrict or protect this route before exposing it publicly.
 
-| Command | Purpose |
-| --- | --- |
-| `npm start` | Start the Express server |
-| `npm run dev` | Start the Express server with Nodemon |
+## Known integration requirements
 
-There is no configured automated test suite in `package.json` yet.
+- `donation.html` currently calls the API at `http://localhost:5000`. Update the frontend API base URL for the deployed backend and use HTTPS in production.
+- `contactus.html` references a local service at `http://localhost:3000`; that service is not included in this repository.
+- The volunteer form uses a client-side email flow. Review its provider configuration before collecting real submissions.
+- Razorpay keys and Gmail SMTP credentials in `server.js` are placeholders and are not currently environment-based.
+- No automated test suite is configured in `package.json`.
 
-## Deployment notes
+## Security and data handling
 
-The public website is hosted on Netlify. The backend must be deployed separately with its required database, payment, and email configuration. Set production secrets through the hosting provider, restrict API access and CORS to trusted origins, and test donation flows with payment-provider test credentials before enabling live payments.
+- Keep `.env` and all production credentials out of Git and public messages.
+- Rotate any credentials that have previously been committed or shared.
+- Restrict API access, configure CORS for trusted origins, and protect administrative data routes before production use.
+- Test payment flows with provider test credentials before accepting live donations.
+- Handle donor personal information and receipts in accordance with applicable privacy requirements.
 
-## Contributing
+## Credits
 
-1. Create a branch for your change.
-2. Keep frontend, API, and integration changes focused.
-3. Test affected pages and backend routes with non-production credentials.
-4. Update documentation when behavior or setup steps change.
-5. Open a pull request with a concise summary and test notes.
+Created by Deep Solanki, Jenil Sarvani, and Deep Parmar.
 
-## Credits and license
-
-The project credits Deep Solanki, Jenil Sarvani, and Deep Parmar. `package.json` declares the ISC license; review the repository's licensing files and project policies before redistribution.
+The package metadata declares the ISC license. Review the repository's licensing terms before reuse or redistribution.
