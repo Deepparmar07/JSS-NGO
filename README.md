@@ -20,7 +20,7 @@ The project combines a static, multi-page website with an Express API for donati
 - Nodemailer email notifications and donation receipts
 - Environment-based configuration for database, payment, and email credentials
 
-> **Before going live:** Set the provider credentials in Render and point `api-config.js` at the deployed Render service URL. Use Razorpay test credentials to verify the complete donation flow before accepting live payments.
+> **Before going live:** Set the provider credentials in Render and point `api-config.js` at the deployed Render service URL. The current Razorpay payment button is kept as the page's payment option, but is **not connected to this backend's order-verification API**. Payments through that button are therefore not automatically saved as donation records in this app's MongoDB or followed by its email receipt flow.
 
 ## Go-live checklist
 
@@ -41,9 +41,12 @@ email, and database access have all been verified.
   site, such as Epixbox, is separate. The Razorpay dashboard screenshot indicated
   an estimated review time of 24–48 hours; check the dashboard for the current
   status and any further requests.
-- [ ] While JSS NGO review is pending, use Razorpay Test Mode credentials and
-  verify a complete test donation, database record, and email receipt. Use live
-  Razorpay keys only after JSS NGO is approved and the test flow succeeds.
+- [ ] While JSS NGO review is pending, test the current Razorpay button in Test
+  Mode. Verify payment in the Razorpay dashboard. The button does not currently
+  create a donation record in this app's MongoDB or trigger its backend receipt
+  email; connect it to the backend payment API before relying on those features.
+- [ ] Use live Razorpay payments only after JSS NGO is approved and the test
+  payment flow succeeds.
 - [ ] Check that public donation, contact, and volunteer forms reach the Render
   API and that the intended recipient receives email.
 
@@ -199,6 +202,8 @@ Available backend environment variables:
 ## Operational notes
 
 - The static site and Express API are deployed separately. `api-config.js` must point to the Render API and Render's `FRONTEND_ORIGIN` must allow the website's origin.
+- `api-config.js` currently has an empty API URL. Contact and volunteer form submissions need the deployed Render API URL configured there.
+- The current Razorpay payment button is not wired to `/api/create-order` or `/api/verify-payment`; its payments will not be stored by the backend donation model or trigger backend email receipts.
 - Contact and volunteer form delivery, as well as donation receipts, require working SMTP settings.
 - `/api/donations` requires a private admin key. Do not expose that key in browser code or commit it.
 - Rotate credentials that have previously been committed or shared. Previously exposed SMTP/payment credentials must be revoked or rotated at their providers.
